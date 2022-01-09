@@ -2,6 +2,7 @@ package guru.springframework.orderservice.domain;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -10,6 +11,9 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by jt on 12/5/21.
@@ -62,6 +66,17 @@ public class OrderHeader extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
+    @OneToMany(mappedBy = "orderHeader", cascade = CascadeType.PERSIST)
+    private Set<OrderLine> orderLines;
+
+    public void addOrderLine(OrderLine orderLine){
+        if(orderLines == null){
+           orderLines = new HashSet<>();
+        }
+        orderLines.add(orderLine);
+        orderLine.setOrderHeader(this);
+    }
+
     public String getCustomer() {
         return customer;
     }
@@ -72,6 +87,14 @@ public class OrderHeader extends BaseEntity{
 
     public OrderStatus getOrderStatus() {
         return orderStatus;
+    }
+
+    public Set<OrderLine> getOrderLines() {
+        return orderLines;
+    }
+
+    public void setOrderLines(Set<OrderLine> orderLines) {
+        this.orderLines = orderLines;
     }
 
     public void setOrderStatus(OrderStatus orderStatus) {
@@ -107,7 +130,8 @@ public class OrderHeader extends BaseEntity{
             return false;
         if (billToAddress != null ? !billToAddress.equals(that.billToAddress) : that.billToAddress != null)
             return false;
-        return orderStatus == that.orderStatus;
+        if (orderStatus != that.orderStatus) return false;
+        return orderLines != null ? orderLines.equals(that.orderLines) : that.orderLines == null;
     }
 
     @Override
@@ -117,6 +141,7 @@ public class OrderHeader extends BaseEntity{
         result = 31 * result + (shippingAddress != null ? shippingAddress.hashCode() : 0);
         result = 31 * result + (billToAddress != null ? billToAddress.hashCode() : 0);
         result = 31 * result + (orderStatus != null ? orderStatus.hashCode() : 0);
+        result = 31 * result + (orderLines != null ? orderLines.hashCode() : 0);
         return result;
     }
 }
